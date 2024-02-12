@@ -1,57 +1,40 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { Send } from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import React, { useEffect, useRef } from 'react';
+import { messageInterface } from '@/app/page';
 
-type Props = {};
+type Props = {
+  messages: messageInterface[];
+  setMessages: React.Dispatch<React.SetStateAction<messageInterface[]>>;
+};
 
-const ChatComponent: React.FC<Props> = () => {
-  const [messages, setMessages] = useState<string[]>([]);
-  const [message, setMessage] = useState('');
-  const endOfMessagesRef = useRef<null | HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+const ChatComponent = ({ messages }: Props) => {
+  const endOfMessagesRef = useRef(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = () => {
-    if (message.trim() !== '') {
-      setMessages((prevMessages) => [...prevMessages, message]);
-      setMessage('');
+    // Si hay mensajes, hacer scroll al último mensaje cada vez que cambie la lista de mensajes
+    if (messages.length > 0) {
+      endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const handleKeyPress = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      handleSendMessage();
-    }
-  };
+  }, [messages]); // Dependencias del useEffect, en este caso la lista de mensajes
 
   return (
-    <div className="flex w-full h-full items-center justify-center">
-      <div className="flex flex-col justify-between h-full w-full md:w-1/2 p-2">
-        <div className="flex items-center justify-between space-x-2">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="w-full h-12 p-2 rounded-xl bg-gray-100 dark:bg-slate-800 resize-none"
-            placeholder="Type a message..."
-          />
-          <Button
-            onClick={handleSendMessage}
-            className="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-xl flex items-center justify-center transition-all duration-300"
-          >
-            <Send className=" text-gray-900 dark:text-white" size={28} />
-          </Button>
-        </div>
+    <div className="flex items-center justify-center w-full overflow-auto h-full">
+      <div className="h-full overflow-auto flex flex-col py-4 w-full md:w-1/2">
+        {messages.length > 0 ? (
+          messages.map((message) => (
+            <div
+              key={message.id}
+              className="flex items-center justify-between p-2"
+            >
+              <p>{message.message}</p>
+            </div>
+          ))
+        ) : (
+          <div className="flex items-center justify-center p-2">
+            <p>No messages yet</p>
+          </div>
+        )}
+        {/* Elemento al final de la lista de mensajes que sirve como referencia para hacer scroll */}
+        <div ref={endOfMessagesRef} />
       </div>
     </div>
   );

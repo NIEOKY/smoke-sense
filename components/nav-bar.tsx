@@ -1,33 +1,37 @@
-'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
+import { Label } from './ui/label';
 
-type Props = {};
-
-const Navbar: React.FC<Props> = () => {
+const Navbar = () => {
   const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // Este efecto se ejecuta solo en el cliente
+    setMounted(true);
+  }, []);
 
   const toggleTheme = () => {
-    setTheme(isDark ? 'light' : 'dark');
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  // Renderizar los iconos solo después de montar en el cliente para evitar discrepancias de hidratación
+  const renderThemeToggleIcon = () => {
+    if (!mounted) return null; // No renderizar hasta que el componente se haya montado en el cliente
+    return theme === 'dark' ? (
+      <Sun className="text-slate-200" size={24} />
+    ) : (
+      <Moon className="text-gray-900" size={24} />
+    );
   };
 
   return (
     <nav className="flex justify-between items-center w-full p-4 bg-white dark:bg-slate-900 transition-colors shadow-xl rounded-b-xl duration-300">
-      <div className="separator"></div>
-      <h1 className="text-2xl text-black dark:text-white font-bold">
-        SMOKE SENSE
-      </h1>
-      <button
-        onClick={toggleTheme}
-        className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center transition-all duration-300"
-      >
-        {isDark ? (
-          <Sun className="text-slate-200" size={24} />
-        ) : (
-          <Moon className="text-gray-900" size={24} />
-        )}
+      <div></div>
+      <Label className="font-bold text-2xl">SmokeSense</Label>
+      <button onClick={toggleTheme} className="...">
+        {renderThemeToggleIcon()}
       </button>
     </nav>
   );
