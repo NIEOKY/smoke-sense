@@ -42,8 +42,19 @@ const ChatComponent = () => {
             </div>
           ))
         ) : (
-          <div className="flex items-center justify-center p-2">
-            <p>No messages yet</p>
+          <div className="flex flex-col items-center justify-center p-2">
+            <p className="text-2xl p-4 rounded-lg items-center justify-center text-neutral-500 text-center  ">
+              Smoke-Sense es un asistente especializado en temas relacionados
+              con el tabaquismo.
+            </p>
+            <p className="text-2xl p-4 rounded-lg items-center justify-center text-neutral-500 text-center  ">
+              Además, utiliza técnicas de predicción de datos para determinar si
+              una persona es fumadora o no. Si desea obtener más información
+              sobre este tema, por favor escribe.
+            </p>
+            <p className="text-2xl p-4 rounded-lg items-end text-neutral-500 text-justify ">
+              {'*Hola*'}
+            </p>
           </div>
         )}
         {/* Elemento al final de la lista de mensajes que sirve como referencia para hacer scroll */}
