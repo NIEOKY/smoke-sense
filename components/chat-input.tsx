@@ -9,7 +9,7 @@ import useChatStore from '@/stores/chatstore';
 import { GenerateAIResponse } from '@/chatbot/openai';
 
 async function enviarJSONAlServidor(jsonString: string) {
-  const url = process.env.NEXT_PUBLIC_OPENAI_SECRET; // URL del endpoint
+  const url = process.env.NEXT_PUBLIC_BACKEND_URL; // URL del endpoint
 
   try {
     const response = await fetch(url as string, {
