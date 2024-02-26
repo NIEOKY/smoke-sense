@@ -12,7 +12,7 @@ async function enviarJSONAlServidor(jsonString: string) {
   const url = process.env.NEXT_PUBLIC_BACKEND_URL; // URL del endpoint
 
   try {
-    const response = await fetch(url as string, {
+    const response = await fetch(url + '/predict/', {
       method: 'POST', // Método HTTP
       headers: {
         'Content-Type': 'application/json', // Indicar el tipo de contenido
