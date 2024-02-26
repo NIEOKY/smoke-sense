@@ -7,7 +7,6 @@ import { Label } from './ui/label';
 import { MessageType } from '@/types/chat-types';
 import useChatStore from '@/stores/chatstore';
 import { GenerateAIResponse } from '@/chatbot/openai';
-import axios from 'axios';
 
 async function enviarJSONAlServidor(jsonString: string) {
   const url = process.env.NEXT_PUBLIC_OPENAI_SECRET; // URL del endpoint
