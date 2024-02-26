@@ -10,10 +10,10 @@ import { GenerateAIResponse } from '@/chatbot/openai';
 import axios from 'axios';
 
 async function enviarJSONAlServidor(jsonString: string) {
-  const url = 'http://localhost:8000/predict/'; // URL del endpoint
+  const url = process.env.NEXT_PUBLIC_OPENAI_SECRET; // URL del endpoint
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(url as string, {
       method: 'POST', // Método HTTP
       headers: {
         'Content-Type': 'application/json', // Indicar el tipo de contenido
