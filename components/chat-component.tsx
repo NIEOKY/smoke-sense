@@ -1,13 +1,10 @@
+import useChatStore from '@/stores/chatstore';
+import { MessageType } from '@/types/chat-types';
 import React, { useEffect, useRef } from 'react';
-import { messageInterface } from '@/app/page';
 
-type Props = {
-  messages: messageInterface[];
-  setMessages: React.Dispatch<React.SetStateAction<messageInterface[]>>;
-};
-
-const ChatComponent = ({ messages }: Props) => {
-  const endOfMessagesRef = useRef(null);
+const ChatComponent = () => {
+  const messages = useChatStore((state) => state.messages);
+  const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Si hay mensajes, hacer scroll al último mensaje cada vez que cambie la lista de mensajes
@@ -18,14 +15,30 @@ const ChatComponent = ({ messages }: Props) => {
 
   return (
     <div className="flex items-center justify-center w-full overflow-auto h-full">
-      <div className="h-full overflow-auto flex flex-col py-4 w-full md:w-1/2">
+      <div className="h-full overflow-auto flex flex-col py-4 w-full space-y-4 md:w-1/2">
         {messages.length > 0 ? (
           messages.map((message) => (
             <div
               key={message.id}
-              className="flex items-center justify-between p-2"
+              className="flex items-center justify-start space-x-2 p-2 "
             >
-              <p>{message.message}</p>
+              {message.isFromUser ? (
+                <div className="flex items-start justify-start space-x-2 ">
+                  <p className="bg-blue-500 text-2xl mt-2 min-w-12 min-h-12 text-white flex items-center justify-center p-2 rounded-full">
+                    🧑
+                  </p>
+                  <p className="text-2xl p-2 rounded-lg">{message.message}</p>
+                </div>
+              ) : (
+                <div className="flex items-start justify-start space-x-2">
+                  <p className="bg-neutral-800 min-w-12 min-h-12 text-white flex items-center justify-center p-2 rounded-full">
+                    🤖
+                  </p>
+                  <p className="text-2xl p-2 rounded-lg items-end">
+                    {message.message}
+                  </p>
+                </div>
+              )}
             </div>
           ))
         ) : (

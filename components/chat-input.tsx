@@ -1,17 +1,72 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { Send } from 'lucide-react';
+import { Send, CigaretteOff } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { messageInterface } from '@/app/page';
-type Props = {
-  messages: messageInterface[];
-  setMessages: React.Dispatch<React.SetStateAction<messageInterface[]>>;
-};
+import { MessageType } from '@/types/chat-types';
+import useChatStore from '@/stores/chatstore';
+import { GenerateAIResponse } from '@/chatbot/openai';
+import axios from 'axios';
 
-const ChatInput: React.FC<Props> = ({ messages, setMessages }) => {
+async function enviarJSONAlServidor(jsonString: string) {
+  const url = 'http://localhost:8000/predict/'; // URL del endpoint
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST', // Método HTTP
+      headers: {
+        'Content-Type': 'application/json', // Indicar el tipo de contenido
+      },
+      body: jsonString, // Cuerpo de la petición con el JSON como string
+    });
+
+    if (!response.ok) {
+      // Manejar respuestas de error
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+    // Convertir la respuesta a JSON y luego obtener el primer elemento del array
+    const data = await response.json(); // Convierte la respuesta a un objeto JSON
+    if (data.length > 0) {
+      return data[0]; // Retorna el primer elemento del array
+    } else {
+      throw new Error('La respuesta del servidor no contiene datos.');
+    }
+  } catch (error) {
+    console.error('Error al enviar JSON al servidor:', error);
+    return null; // Considera manejar el error de manera diferente si es necesario
+  }
+}
+function extraerJSON(input: string): string | null {
+  // Esta expresión regular intenta encontrar estructuras que parezcan JSON.
+  // Es bastante simplista y puede necesitar ajustes para casos más complejos.
+  const regex =
+    /{[^{}]*}|{(?:[^{}]|{[^{}]*})*}|\[[^\[\]]*\]|\[(?:[^\[\]]|\[[^\[\]]*\])*\]/;
+
+  const match = input.match(regex);
+  if (match) {
+    const posibleJSON = match[0];
+    try {
+      // Intenta parsear para asegurar que es un JSON válido.
+      JSON.parse(posibleJSON);
+      return posibleJSON; // Es un JSON válido.
+    } catch (e) {
+      // No es un JSON válido.
+      return null;
+    }
+  } else {
+    // No se encontró ninguna estructura que parezca JSON.
+    return null;
+  }
+}
+
+const ChatInput = () => {
+  const openaiKey = process.env.NEXT_PUBLIC_OPENAI_SECRET;
+  const messages = useChatStore((state) => state.messages);
+  const addMessage = useChatStore((state) => state.addMessage);
   const [message, setMessage] = useState('');
+  const [canSendMessage, setCanSendMessage] = useState(true);
+
   const endOfMessagesRef = useRef<null | HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -22,15 +77,43 @@ const ChatInput: React.FC<Props> = ({ messages, setMessages }) => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
+    // Asegúrate de marcar esta función como async
+    if (!canSendMessage) return;
     if (message.trim() !== '') {
-      const newMessage = {
-        id: Date.now(),
+      const userMessage: MessageType = {
+        id: Math.floor(Math.random() * 100000),
         message,
         isFromUser: true,
       };
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      addMessage(userMessage);
       setMessage('');
+      setCanSendMessage(false);
+
+      // Llamar a GenerateAIResponse y obtener la respuesta del bot
+      const botResponse = await GenerateAIResponse([...messages, userMessage]);
+      const json = extraerJSON(botResponse!);
+      if (json) {
+        console.log(json);
+        //post the json to the server
+        const response = await enviarJSONAlServidor(json);
+        const botMessage: MessageType = {
+          id: Math.floor(Math.random() * 100000),
+          message: response!,
+          isFromUser: false,
+        };
+        addMessage(botMessage);
+      } else if (botResponse && botResponse) {
+        // Asegúrate de que la respuesta del bot tenga contenido
+        const botMessage: MessageType = {
+          id: Math.floor(Math.random() * 100000),
+          message: botResponse,
+          isFromUser: false,
+        };
+
+        addMessage(botMessage);
+      }
+      setCanSendMessage(true);
     }
   };
 
@@ -53,10 +136,18 @@ const ChatInput: React.FC<Props> = ({ messages, setMessages }) => {
             placeholder="Type a message..."
           />
           <Button
+            disabled={!canSendMessage}
             onClick={handleSendMessage}
             className="w-12 h-12 bg-gray-200 dark:bg-slate-700 rounded-xl flex items-center justify-center transition-all duration-300"
           >
-            <Send className=" text-gray-900 dark:text-white" size={28} />
+            {canSendMessage ? (
+              <Send className="text-gray-900 dark:text-white" size={28} />
+            ) : (
+              <CigaretteOff
+                className="text-gray-400 dark:text-slate-400 animate-spin duration-3000 transition-all"
+                size={28}
+              />
+            )}
           </Button>
         </div>
       </div>
